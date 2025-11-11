@@ -6,7 +6,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 
-	api "api.seaotterms.com/api/teach"
+	api "seaotterms-api/api/teach"
 )
 
 func TeachRouter(apiGroup fiber.Router, dbs map[string]*gorm.DB) {

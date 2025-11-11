@@ -1,4 +1,4 @@
-module api.seaotterms.com
+module seaotterms-api
 
 go 1.24.0
 

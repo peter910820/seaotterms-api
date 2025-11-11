@@ -6,7 +6,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 
-	api "api.seaotterms.com/api/gal"
+	api "seaotterms-api/api/gal"
 )
 
 func GalRouter(apiGroup fiber.Router, dbs map[string]*gorm.DB) {

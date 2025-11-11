@@ -5,7 +5,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/session"
 	"gorm.io/gorm"
 
-	api "api.seaotterms.com/api/blog"
+	api "seaotterms-api/api/blog"
 )
 
 func gameRouter(blogGroup fiber.Router, dbs map[string]*gorm.DB, dbName string, store *session.Store) {

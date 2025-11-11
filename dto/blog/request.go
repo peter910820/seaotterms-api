@@ -3,7 +3,7 @@ package blog
 import (
 	"time"
 
-	model "api.seaotterms.com/model/blog"
+	model "seaotterms-api/model/blog"
 )
 
 type ArticleCreateRequest struct {

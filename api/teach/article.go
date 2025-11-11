@@ -9,8 +9,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 
-	dto "api.seaotterms.com/dto/teach"
-	model "api.seaotterms.com/model/teach"
+	dto "seaotterms-api/dto/teach"
+	model "seaotterms-api/model/teach"
 )
 
 type LinkUpdateSeries struct {

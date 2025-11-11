@@ -12,10 +12,10 @@ import (
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 
-	"api.seaotterms.com/model"
-	blogrouter "api.seaotterms.com/router/blog"
-	galrouter "api.seaotterms.com/router/gal"
-	teachrouter "api.seaotterms.com/router/teach"
+	"seaotterms-api/model"
+	blogrouter "seaotterms-api/router/blog"
+	galrouter "seaotterms-api/router/gal"
+	teachrouter "seaotterms-api/router/teach"
 )
 
 var (

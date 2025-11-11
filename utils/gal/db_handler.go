@@ -6,7 +6,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 
-	model "api.seaotterms.com/model/galgame"
+	model "seaotterms-api/model/galgame"
 )
 
 func WriteTmpData(dataType string, dataContent string, expirationAt time.Time, db *gorm.DB) error {

@@ -1,4 +1,4 @@
-# api.seaotterms.com
+# seaotterms-api
 
 * 因為近期專案都準備前後端完全分離，所以開了一個api專案去集中API管理，減少伺服器需要開的PORT(專案)數量。
 * 目前旗下有管理三個專案的API:

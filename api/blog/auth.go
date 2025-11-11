@@ -11,10 +11,10 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 
-	dto "api.seaotterms.com/dto/blog"
-	middleware "api.seaotterms.com/middleware/blog"
-	model "api.seaotterms.com/model/blog"
-	utils "api.seaotterms.com/utils/blog"
+	dto "seaotterms-api/dto/blog"
+	middleware "seaotterms-api/middleware/blog"
+	model "seaotterms-api/model/blog"
+	utils "seaotterms-api/utils/blog"
 )
 
 // 取得使用者資料(本質上是會先進行GetUserInfo這個middlware)

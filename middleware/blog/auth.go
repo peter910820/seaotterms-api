@@ -7,8 +7,8 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/session"
 	"github.com/sirupsen/logrus"
 
-	dto "api.seaotterms.com/dto/blog"
-	utils "api.seaotterms.com/utils/blog"
+	dto "seaotterms-api/dto/blog"
+	utils "seaotterms-api/utils/blog"
 )
 
 var (

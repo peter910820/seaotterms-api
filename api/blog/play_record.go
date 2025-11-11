@@ -5,8 +5,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 
-	model "api.seaotterms.com/model/galgame"
-	utils "api.seaotterms.com/utils/blog"
+	model "seaotterms-api/model/galgame"
+	utils "seaotterms-api/utils/blog"
 )
 
 func QueryGameRecord(c *fiber.Ctx, db *gorm.DB) error {

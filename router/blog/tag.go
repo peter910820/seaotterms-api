@@ -5,8 +5,8 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/session"
 	"gorm.io/gorm"
 
-	api "api.seaotterms.com/api/blog"
-	middleware "api.seaotterms.com/middleware/blog"
+	api "seaotterms-api/api/blog"
+	middleware "seaotterms-api/middleware/blog"
 )
 
 func tagRouter(blogGroup fiber.Router, dbs map[string]*gorm.DB, dbName string, store *session.Store) {

@@ -8,9 +8,9 @@ import (
 
 	"gorm.io/gorm"
 
-	blogmodel "api.seaotterms.com/model/blog"
-	galmodel "api.seaotterms.com/model/galgame"
-	teachmodel "api.seaotterms.com/model/teach"
+	blogmodel "seaotterms-api/model/blog"
+	galmodel "seaotterms-api/model/galgame"
+	teachmodel "seaotterms-api/model/teach"
 )
 
 func Migration(dbName string, db *gorm.DB) {

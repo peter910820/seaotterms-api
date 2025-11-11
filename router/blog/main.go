@@ -7,7 +7,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/session"
 	"gorm.io/gorm"
 
-	middleware "api.seaotterms.com/middleware/blog"
+	middleware "seaotterms-api/middleware/blog"
 )
 
 // 除了身份驗證表的資料庫，其餘資料庫名稱都定義在各站台router包的main.go中

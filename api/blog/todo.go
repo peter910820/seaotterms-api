@@ -10,9 +10,9 @@ import (
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 
-	dto "api.seaotterms.com/dto/blog"
-	model "api.seaotterms.com/model/blog"
-	utils "api.seaotterms.com/utils/blog"
+	dto "seaotterms-api/dto/blog"
+	model "seaotterms-api/model/blog"
+	utils "seaotterms-api/utils/blog"
 )
 
 func QueryTodoByOwner(c *fiber.Ctx, db *gorm.DB) error {

@@ -12,9 +12,9 @@ import (
 
 	"gorm.io/gorm"
 
-	dto "api.seaotterms.com/dto/gal"
-	model "api.seaotterms.com/model/galgame"
-	utils "api.seaotterms.com/utils/gal"
+	dto "seaotterms-api/dto/gal"
+	model "seaotterms-api/model/galgame"
+	utils "seaotterms-api/utils/gal"
 )
 
 func Login(c *fiber.Ctx, db *gorm.DB) error {
