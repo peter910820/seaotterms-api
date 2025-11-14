@@ -40,7 +40,7 @@ func init() {
 
 	// init store
 	blogStore = session.New(session.Config{
-		Expiration:     7 * 24 * time.Hour,
+		Expiration:     14 * 24 * time.Hour,
 		CookieDomain:   os.Getenv("SESSION_DOMAIN"),
 		CookieSameSite: "None",
 		KeyLookup:      "cookie:blog-userinfo-session",
