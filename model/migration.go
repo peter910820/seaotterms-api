@@ -9,7 +9,6 @@ import (
 	"gorm.io/gorm"
 
 	blogmodel "seaotterms-api/model/blog"
-	galmodel "seaotterms-api/model/galgame"
 	teachmodel "seaotterms-api/model/teach"
 )
 
@@ -25,18 +24,6 @@ func Migration(dbName string, db *gorm.DB) {
 		db.AutoMigrate(&teachmodel.Article{})
 		db.AutoMigrate(&teachmodel.Comment{})
 	case os.Getenv("DATABASE_NAME2"):
-		// db.AutoMigrate(&galmodel.DownloadArticle{})
-		db.AutoMigrate(&galmodel.Brand{})
-		db.AutoMigrate(&galmodel.Game{})
-		db.AutoMigrate(&galmodel.PlayRecord{})
-		db.AutoMigrate(&galmodel.SelfBrand{}) // old
-		db.AutoMigrate(&galmodel.SelfGame{})  //old
-		db.AutoMigrate(&galmodel.User{})
-		db.AutoMigrate(&galmodel.Tag{})
-		db.AutoMigrate(&galmodel.Article{})
-		db.AutoMigrate(&galmodel.Log{})
-		db.AutoMigrate(&galmodel.TmpData{})
-	case os.Getenv("DATABASE_NAME3"):
 		db.AutoMigrate(&blogmodel.User{})
 		db.AutoMigrate(&blogmodel.Tag{})
 		db.AutoMigrate(&blogmodel.Article{})

@@ -14,7 +14,6 @@ import (
 
 	"seaotterms-api/model"
 	blogrouter "seaotterms-api/router/blog"
-	galrouter "seaotterms-api/router/gal"
 	teachrouter "seaotterms-api/router/teach"
 )
 
@@ -50,7 +49,7 @@ func init() {
 
 func main() {
 	// init migration
-	for i := 0; i <= 2; i++ {
+	for i := 0; i < 2; i++ {
 		dbName, db := model.InitDsn(i)
 		dbs[dbName] = db
 		model.Migration(dbName, dbs[dbName])
@@ -67,7 +66,6 @@ func main() {
 	apiGroup := app.Group("/api") // main api route group
 
 	// site route group
-	galrouter.GalRouter(apiGroup, dbs)
 	blogrouter.BlogRouter(apiGroup, dbs, blogStore)
 	teachrouter.TeachRouter(apiGroup, dbs)
 
