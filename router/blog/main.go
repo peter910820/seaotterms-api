@@ -14,8 +14,7 @@ import (
 func BlogRouter(apiGroup fiber.Router, dbs map[string]*gorm.DB, store *session.Store) {
 	blogGroup := apiGroup.Group("/blog")
 
-	dbName := os.Getenv("DATABASE_NAME3")
-	dbName2 := os.Getenv("DATABASE_NAME2") // galgame DB
+	dbName := os.Getenv("DATABASE_NAME2")
 
 	blogGroup.Use(middleware.GetUserInfo(store)) // global middleware
 
@@ -27,14 +26,6 @@ func BlogRouter(apiGroup fiber.Router, dbs map[string]*gorm.DB, store *session.S
 	systemTodoRouter(blogGroup, dbs, dbName, store)
 	userRouter(blogGroup, dbs, dbName, store)
 	todoTopicRouter(blogGroup, dbs, dbName, store)
-
-	// galgame
-	selfGameRouter(blogGroup, dbs, dbName2, store)
-	selfBrandRouter(blogGroup, dbs, dbName2, store)
-
-	// new galgame
-	brandRouter(blogGroup, dbs, dbName2, store)
-	gameRouter(blogGroup, dbs, dbName2, store)
 
 	// auth
 	authRouter(blogGroup, dbs, dbName, store)
