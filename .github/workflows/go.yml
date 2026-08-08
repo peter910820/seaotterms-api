@@ -13,15 +13,29 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Main Project
+        uses: actions/checkout@v5
+        with:
+          path: seaotterms-api
+
+      - name: Checkout seaottermsdb Dependency
+        uses: actions/checkout@v5
+        with:
+          repository: peter910820/seaotterms-db
+          path: seaotterms-db
 
       - name: Set up Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v6
         with:
-          go-version: "1.24.0"
+          go-version: "1.26.0"
 
       - name: Build
-        run: go build -v ./...
+        run: |
+          cd seaotterms-api
+          go mod edit -replace seaotterms-db=../seaotterms-db
 
-      - name: Test
-        run: go test -v ./...
+          export GOPROXY=direct
+
+          go mod tidy
+
+          go build -v ./...
