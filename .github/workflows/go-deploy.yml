@@ -130,6 +130,8 @@ jobs:
             set -euo pipefail
             chmod u+x "${{ secrets.VPS_DEPLOY_BASE }}/${{ env.REPO_NAME }}/${{ env.BINARY_NAME }}"
             echo "已設定執行權限：${{ env.BINARY_NAME }}"
+            systemctl --user restart "${{ env.REPO_NAME }}"
+            echo "已重啟服務：${{ env.REPO_NAME }}"
 
       - name: Show deployment info
         run: |
