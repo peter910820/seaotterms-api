@@ -9,7 +9,6 @@ import (
 	"gorm.io/gorm"
 
 	blogmodel "seaotterms-api/model/blog"
-	teachmodel "seaotterms-api/model/teach"
 )
 
 func Migration(dbName string, db *gorm.DB) {
@@ -20,10 +19,6 @@ func Migration(dbName string, db *gorm.DB) {
 
 	switch dbName {
 	case os.Getenv("DATABASE_NAME"):
-		db.AutoMigrate(&teachmodel.Series{})
-		db.AutoMigrate(&teachmodel.Article{})
-		db.AutoMigrate(&teachmodel.Comment{})
-	case os.Getenv("DATABASE_NAME2"):
 		db.AutoMigrate(&blogmodel.User{})
 		db.AutoMigrate(&blogmodel.Tag{})
 		db.AutoMigrate(&blogmodel.Article{})
