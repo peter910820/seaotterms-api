@@ -16,6 +16,8 @@ import (
 	seaottermsdb "seaotterms-db"
 
 	"seaotterms-api/teach"
+
+	blogrouter "seaotterms-api/router/blog"
 )
 
 var (
@@ -87,8 +89,8 @@ func main() {
 	// 多租戶模式確保不同站台不會衝突
 	for _, m := range dbm {
 		switch m.GetDBModel() {
-		// case seaottermsdb.BlogModel:
-		// 	blogrouter.BlogRouter(apiGroup, m)
+		case seaottermsdb.BlogModel:
+			blogrouter.BlogRouter(apiGroup, m, blogStore)
 		// case seaottermsdb.DiscordBotModel:
 		// 	teachrouter.TeachRouter(apiGroup, m)
 		// case seaottermsdb.AuthModel:
