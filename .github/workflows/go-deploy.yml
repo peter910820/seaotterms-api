@@ -71,6 +71,9 @@ jobs:
           CGO_ENABLED: '0'
         run: |
           set -euo pipefail
+          go mod edit -replace seaotterms-db=../seaotterms-db
+          export GOPROXY=direct
+          go mod tidy
           go build -ldflags="-s -w" -trimpath -o "$BINARY_NAME" .
 
       - name: Upload Linux binary
