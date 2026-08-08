@@ -107,6 +107,8 @@ jobs:
           script: |
             set -euo pipefail
             mkdir -p "${{ secrets.VPS_DEPLOY_BASE }}/${{ env.REPO_NAME }}"
+            systemctl --user stop "${{ env.REPO_NAME }}"
+            echo "已停止服務：${{ env.REPO_NAME }}"
 
       - name: Upload to VPS
         uses: appleboy/scp-action@v1.0.0
