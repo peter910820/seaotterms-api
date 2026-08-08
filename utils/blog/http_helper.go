@@ -1,4 +1,4 @@
-package gal
+package blog
 
 import (
 	"strings"
