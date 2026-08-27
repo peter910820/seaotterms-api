@@ -10,17 +10,21 @@ import (
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 
-	dto "seaotterms-api/dto/blog"
-	model "seaotterms-api/model/blog"
-	utils "seaotterms-api/utils/blog"
+	model "seaotterms-db/blog"
 )
+
+type TodoUpdateRequest struct {
+	Status     uint      `json:"status"`
+	UpdatedAt  time.Time `json:"updatedAt"`
+	UpdateName string    `json:"updateName"`
+}
 
 func QueryTodoByOwner(c *fiber.Ctx, db *gorm.DB) error {
 	// URL decoding
 	owner, err := url.QueryUnescape(c.Params("owner"))
 	if err != nil {
 		logrus.Error(err)
-		response := utils.ResponseFactory[any](c, fiber.StatusBadRequest, "客戶端資料錯誤", nil)
+		response := ResponseFactory[any](c, fiber.StatusBadRequest, "客戶端資料錯誤", nil)
 		return c.Status(fiber.StatusBadRequest).JSON(response)
 	}
 
@@ -30,15 +34,15 @@ func QueryTodoByOwner(c *fiber.Ctx, db *gorm.DB) error {
 		// if record not exist
 		if err == gorm.ErrRecordNotFound {
 			logrus.Error(err)
-			response := utils.ResponseFactory[any](c, fiber.StatusNotFound, err.Error(), nil)
+			response := ResponseFactory[any](c, fiber.StatusNotFound, err.Error(), nil)
 			return c.Status(fiber.StatusNotFound).JSON(response)
 		} else {
-			response := utils.ResponseFactory[any](c, fiber.StatusInternalServerError, err.Error(), nil)
+			response := ResponseFactory[any](c, fiber.StatusInternalServerError, err.Error(), nil)
 			return c.Status(fiber.StatusInternalServerError).JSON(response)
 		}
 	}
 	logrus.Infof("查詢%s的Todo資料成功", owner)
-	response := utils.ResponseFactory(c, fiber.StatusOK, fmt.Sprintf("查詢%s的Todo資料成功", owner), &responseData)
+	response := ResponseFactory(c, fiber.StatusOK, fmt.Sprintf("查詢%s的Todo資料成功", owner), &responseData)
 	return c.Status(fiber.StatusOK).JSON(response)
 }
 
@@ -47,7 +51,7 @@ func CreateTodo(c *fiber.Ctx, db *gorm.DB) error {
 	var clientData model.Todo
 	if err := c.BodyParser(&clientData); err != nil {
 		logrus.Error(err)
-		response := utils.ResponseFactory[any](c, fiber.StatusBadRequest, "客戶端資料錯誤", nil)
+		response := ResponseFactory[any](c, fiber.StatusBadRequest, "客戶端資料錯誤", nil)
 		return c.Status(fiber.StatusBadRequest).JSON(response)
 	}
 	// handle topic
@@ -56,7 +60,7 @@ func CreateTodo(c *fiber.Ctx, db *gorm.DB) error {
 		clientData.Topic = clientData.Topic[:lastSlashIndex]
 	} else {
 		logrus.Error("topic value has error")
-		response := utils.ResponseFactory[any](c, fiber.StatusBadRequest, "客戶端資料轉換錯誤", nil)
+		response := ResponseFactory[any](c, fiber.StatusBadRequest, "客戶端資料轉換錯誤", nil)
 		return c.Status(fiber.StatusBadRequest).JSON(response)
 	}
 
@@ -74,7 +78,7 @@ func CreateTodo(c *fiber.Ctx, db *gorm.DB) error {
 	err := db.Create(&data).Error
 	if err != nil {
 		logrus.Error(err)
-		response := utils.ResponseFactory[any](c, fiber.StatusInternalServerError, err.Error(), nil)
+		response := ResponseFactory[any](c, fiber.StatusInternalServerError, err.Error(), nil)
 		return c.Status(fiber.StatusInternalServerError).JSON(response)
 	}
 
@@ -82,26 +86,26 @@ func CreateTodo(c *fiber.Ctx, db *gorm.DB) error {
 	if err != nil {
 		logrus.Error(err)
 		if err == gorm.ErrRecordNotFound {
-			response := utils.ResponseFactory[any](c, fiber.StatusNotFound, "找不到該Todo資料", nil)
+			response := ResponseFactory[any](c, fiber.StatusNotFound, "找不到該Todo資料", nil)
 			return c.Status(fiber.StatusNotFound).JSON(response)
 		} else {
-			response := utils.ResponseFactory[any](c, fiber.StatusInternalServerError, err.Error(), nil)
+			response := ResponseFactory[any](c, fiber.StatusInternalServerError, err.Error(), nil)
 			return c.Status(fiber.StatusInternalServerError).JSON(response)
 		}
 	}
 
 	logrus.Infof("資料 %s 創建成功", clientData.Title)
-	response := utils.ResponseFactory(c, fiber.StatusOK, fmt.Sprintf("資料 %s 創建成功", clientData.Title), responseData)
+	response := ResponseFactory(c, fiber.StatusOK, fmt.Sprintf("資料 %s 創建成功", clientData.Title), responseData)
 	return c.Status(fiber.StatusOK).JSON(response)
 }
 
 func UpdateTodoStatus(c *fiber.Ctx, db *gorm.DB) error {
 
 	// load client data
-	var clientData dto.TodoUpdateRequest
+	var clientData TodoUpdateRequest
 	if err := c.BodyParser(&clientData); err != nil {
 		logrus.Error(err)
-		response := utils.ResponseFactory[any](c, fiber.StatusBadRequest, "客戶端資料錯誤", nil)
+		response := ResponseFactory[any](c, fiber.StatusBadRequest, "客戶端資料錯誤", nil)
 		return c.Status(fiber.StatusBadRequest).JSON(response)
 	}
 	clientData.UpdatedAt = time.Now()
@@ -112,10 +116,10 @@ func UpdateTodoStatus(c *fiber.Ctx, db *gorm.DB) error {
 		logrus.Error(err)
 		// if record not exist
 		if err == gorm.ErrRecordNotFound {
-			response := utils.ResponseFactory[any](c, fiber.StatusNotFound, "找不到該Todo資料", nil)
+			response := ResponseFactory[any](c, fiber.StatusNotFound, "找不到該Todo資料", nil)
 			return c.Status(fiber.StatusNotFound).JSON(response)
 		} else {
-			response := utils.ResponseFactory[any](c, fiber.StatusInternalServerError, err.Error(), nil)
+			response := ResponseFactory[any](c, fiber.StatusInternalServerError, err.Error(), nil)
 			return c.Status(fiber.StatusInternalServerError).JSON(response)
 		}
 	}
@@ -124,16 +128,16 @@ func UpdateTodoStatus(c *fiber.Ctx, db *gorm.DB) error {
 	if err != nil {
 		logrus.Error(err)
 		if err == gorm.ErrRecordNotFound {
-			response := utils.ResponseFactory[any](c, fiber.StatusNotFound, "找不到該Todo資料", nil)
+			response := ResponseFactory[any](c, fiber.StatusNotFound, "找不到該Todo資料", nil)
 			return c.Status(fiber.StatusNotFound).JSON(response)
 		} else {
-			response := utils.ResponseFactory[any](c, fiber.StatusInternalServerError, err.Error(), nil)
+			response := ResponseFactory[any](c, fiber.StatusInternalServerError, err.Error(), nil)
 			return c.Status(fiber.StatusInternalServerError).JSON(response)
 		}
 	}
 
 	logrus.Infof("Todo %s 更新成功", c.Params("id"))
-	response := utils.ResponseFactory(c, fiber.StatusOK, fmt.Sprintf("Todo %s 更新成功", c.Params("id")), responseData)
+	response := ResponseFactory(c, fiber.StatusOK, fmt.Sprintf("Todo %s 更新成功", c.Params("id")), responseData)
 	return c.Status(fiber.StatusOK).JSON(response)
 }
 
@@ -143,10 +147,10 @@ func DeleteTodo(c *fiber.Ctx, db *gorm.DB) error {
 		logrus.Error(err)
 		// if record not exist
 		if err == gorm.ErrRecordNotFound {
-			response := utils.ResponseFactory[any](c, fiber.StatusNotFound, "找不到該Todo資料", nil)
+			response := ResponseFactory[any](c, fiber.StatusNotFound, "找不到該Todo資料", nil)
 			return c.Status(fiber.StatusNotFound).JSON(response)
 		} else {
-			response := utils.ResponseFactory[any](c, fiber.StatusInternalServerError, err.Error(), nil)
+			response := ResponseFactory[any](c, fiber.StatusInternalServerError, err.Error(), nil)
 			return c.Status(fiber.StatusInternalServerError).JSON(response)
 		}
 	}
@@ -155,23 +159,23 @@ func DeleteTodo(c *fiber.Ctx, db *gorm.DB) error {
 	if err != nil {
 		logrus.Error(err)
 		if err == gorm.ErrRecordNotFound {
-			response := utils.ResponseFactory[any](c, fiber.StatusNotFound, "找不到該Todo資料", nil)
+			response := ResponseFactory[any](c, fiber.StatusNotFound, "找不到該Todo資料", nil)
 			return c.Status(fiber.StatusNotFound).JSON(response)
 		} else {
-			response := utils.ResponseFactory[any](c, fiber.StatusInternalServerError, err.Error(), nil)
+			response := ResponseFactory[any](c, fiber.StatusInternalServerError, err.Error(), nil)
 			return c.Status(fiber.StatusInternalServerError).JSON(response)
 		}
 	}
 
 	logrus.Infof("Todo %s 刪除成功", c.Params("id"))
-	response := utils.ResponseFactory(c, fiber.StatusOK, fmt.Sprintf("Todo %s 刪除成功", c.Params("id")), responseData)
+	response := ResponseFactory(c, fiber.StatusOK, fmt.Sprintf("Todo %s 刪除成功", c.Params("id")), responseData)
 	return c.Status(fiber.StatusOK).JSON(response)
 }
 
 // 用使用者登入資料取得該使用者的全部Todo資料
 // 用在增、改、刪三個API的回傳值，降低前端Request的次數
 func getTodo(c *fiber.Ctx, db *gorm.DB) (*[]model.Todo, error) {
-	userInfo, ok := c.Locals("user_info").(*dto.UserInfo)
+	userInfo, ok := c.Locals("user_info").(*UserInfo)
 	if !ok {
 		logrus.Fatal("使用者登入版號表異常")
 	}

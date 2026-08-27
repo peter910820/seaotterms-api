@@ -2,18 +2,29 @@ package blog
 
 import (
 	"errors"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/session"
 	"github.com/sirupsen/logrus"
-
-	dto "seaotterms-api/dto/blog"
-	utils "seaotterms-api/utils/blog"
 )
+
+type UserInfo struct {
+	ID          uint      `json:"id"`
+	Username    string    `json:"username"`
+	Email       string    `json:"email"`
+	Exp         int       `json:"exp"`
+	Management  bool      `json:"management"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
+	UpdateName  string    `json:"update_name"`
+	Avatar      string    `json:"avatar"`
+	DataVersion int       `json:"dataVersion"`
+}
 
 var (
 	// 建立共用使用者快取表，用來處理同使用者登入不同瀏覽器的狀況
-	UserInfo = map[uint]*dto.UserInfo{}
+	UserInfoInstance = map[uint]*UserInfo{}
 )
 
 // 用Token檢查使用者資料(預設前端全域註冊、回傳)
@@ -27,7 +38,7 @@ func GetUserInfo(store *session.Store) fiber.Handler {
 		if userID == nil {
 			return c.Next()
 		}
-		userInfo, ok := UserInfo[userID.(uint)]
+		userInfo, ok := UserInfoInstance[userID.(uint)]
 		if !ok {
 			logrus.Fatal(err) // 有Session但維護表遺失
 		}
@@ -42,7 +53,7 @@ func CheckLogin(store *session.Store) fiber.Handler {
 		userInfo, err := checkLogin(c, store)
 		if err != nil {
 			logrus.Warn(err)
-			response := utils.ResponseFactory[any](c, fiber.StatusUnauthorized, err.Error(), nil)
+			response := ResponseFactory[any](c, fiber.StatusUnauthorized, err.Error(), nil)
 			return c.Status(fiber.StatusUnauthorized).JSON(response)
 		}
 		c.Locals("user_info", userInfo)
@@ -56,12 +67,12 @@ func CheckManagement(store *session.Store) fiber.Handler {
 		userInfo, err := checkLogin(c, store)
 		if err != nil {
 			logrus.Warn(err)
-			response := utils.ResponseFactory[any](c, fiber.StatusUnauthorized, err.Error(), nil)
+			response := ResponseFactory[any](c, fiber.StatusUnauthorized, err.Error(), nil)
 			return c.Status(fiber.StatusUnauthorized).JSON(response)
 		}
 		if !userInfo.Management {
 			logrus.Warnf("使用者 %s 權限不足", userInfo.Username)
-			response := utils.ResponseFactory[any](c, fiber.StatusForbidden, "使用者沒有權限", nil)
+			response := ResponseFactory[any](c, fiber.StatusForbidden, "使用者沒有權限", nil)
 			return c.Status(fiber.StatusForbidden).JSON(response)
 		}
 		c.Locals("user_info", userInfo)
@@ -70,7 +81,7 @@ func CheckManagement(store *session.Store) fiber.Handler {
 }
 
 // utils
-func checkLogin(c *fiber.Ctx, store *session.Store) (*dto.UserInfo, error) {
+func checkLogin(c *fiber.Ctx, store *session.Store) (*UserInfo, error) {
 	sess, err := store.Get(c)
 	if err != nil {
 		logrus.Fatal(err)
@@ -80,7 +91,7 @@ func checkLogin(c *fiber.Ctx, store *session.Store) (*dto.UserInfo, error) {
 		return nil, errors.New("使用者未登入")
 	}
 
-	userInfo, ok := UserInfo[userID.(uint)]
+	userInfo, ok := UserInfoInstance[userID.(uint)]
 	if !ok {
 		return nil, errors.New("使用者未登入")
 	}

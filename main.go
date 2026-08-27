@@ -17,7 +17,7 @@ import (
 
 	"seaotterms-api/teach"
 
-	blogrouter "seaotterms-api/router/blog"
+	"seaotterms-api/blog"
 )
 
 var (
@@ -90,11 +90,7 @@ func main() {
 	for _, m := range dbm {
 		switch m.GetDBModel() {
 		case seaottermsdb.BlogModel:
-			blogrouter.BlogRouter(apiGroup, m, blogStore)
-		// case seaottermsdb.DiscordBotModel:
-		// 	teachrouter.TeachRouter(apiGroup, m)
-		// case seaottermsdb.AuthModel:
-		// 	teachrouter.TeachRouter(apiGroup, m)
+			blog.BlogRouter(apiGroup, m, blogStore)
 		case seaottermsdb.TeachModel:
 			teach.TeachRouter(apiGroup, m)
 		default:

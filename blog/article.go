@@ -8,9 +8,22 @@ import (
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 
-	dto "seaotterms-api/dto/blog"
-	model "seaotterms-api/model/blog"
-	utils "seaotterms-api/utils/blog"
+	model "seaotterms-db/blog"
+)
+
+// Request
+type (
+	ArticleCreateRequest struct {
+		Title   string   `json:"title"`
+		Content string   `json:"content"`
+		Tags    []string `json:"tags"`
+	}
+
+	ArticleUpdateRequest struct {
+		Title   string      `gorm:"NOT NULL" json:"title"`
+		Content string      `gorm:"NOT NULL" json:"content"`
+		Tags    []model.Tag `gorm:"many2many:article_tags" json:"tags"`
+	}
 )
 
 // query article data (all or use id to query single article data)
@@ -21,7 +34,7 @@ func QueryArticle(c *fiber.Ctx, db *gorm.DB) error {
 	articleID, err := url.QueryUnescape(c.Params("id"))
 	if err != nil {
 		logrus.Error(err)
-		response := utils.ResponseFactory[any](c, fiber.StatusBadRequest, err.Error(), nil)
+		response := ResponseFactory[any](c, fiber.StatusBadRequest, err.Error(), nil)
 		return c.Status(fiber.StatusBadRequest).JSON(response)
 	}
 
@@ -32,22 +45,22 @@ func QueryArticle(c *fiber.Ctx, db *gorm.DB) error {
 	}
 	if err != nil {
 		logrus.Error(err)
-		response := utils.ResponseFactory[any](c, fiber.StatusInternalServerError, err.Error(), nil)
+		response := ResponseFactory[any](c, fiber.StatusInternalServerError, err.Error(), nil)
 		return c.Status(fiber.StatusInternalServerError).JSON(response)
 	}
 
 	logrus.Info("Article資料查詢成功")
-	response := utils.ResponseFactory(c, fiber.StatusOK, "Article資料查詢成功", &responseData)
+	response := ResponseFactory(c, fiber.StatusOK, "Article資料查詢成功", &responseData)
 	return c.Status(fiber.StatusOK).JSON(response)
 }
 
 // create article data
 func CreateArticle(c *fiber.Ctx, db *gorm.DB) error {
-	var clientData dto.ArticleCreateRequest
+	var clientData ArticleCreateRequest
 
 	if err := c.BodyParser(&clientData); err != nil {
 		logrus.Error(err)
-		response := utils.ResponseFactory[any](c, fiber.StatusInternalServerError, err.Error(), nil)
+		response := ResponseFactory[any](c, fiber.StatusInternalServerError, err.Error(), nil)
 		return c.Status(fiber.StatusInternalServerError).JSON(response)
 	}
 
@@ -56,7 +69,7 @@ func CreateArticle(c *fiber.Ctx, db *gorm.DB) error {
 		db.Model(&model.Tag{}).Where("name IN ?", clientData.Tags).Count(&count)
 		if count != int64(len(clientData.Tags)) {
 			logrus.Error("缺少tags，請先建立tags")
-			response := utils.ResponseFactory[any](c, fiber.StatusInternalServerError, "缺少tags，請先建立tags", nil)
+			response := ResponseFactory[any](c, fiber.StatusInternalServerError, "缺少tags，請先建立tags", nil)
 			return c.Status(fiber.StatusInternalServerError).JSON(response)
 		}
 	}
@@ -74,12 +87,12 @@ func CreateArticle(c *fiber.Ctx, db *gorm.DB) error {
 
 	if err := db.Create(&data).Error; err != nil {
 		logrus.Error(err)
-		response := utils.ResponseFactory[any](c, fiber.StatusInternalServerError, err.Error(), nil)
+		response := ResponseFactory[any](c, fiber.StatusInternalServerError, err.Error(), nil)
 		return c.Status(fiber.StatusInternalServerError).JSON(response)
 	}
 
 	logrus.Info("Article資料建立成功: " + clientData.Title)
-	response := utils.ResponseFactory[any](c, fiber.StatusOK, "Article資料建立成功: "+clientData.Title, nil)
+	response := ResponseFactory[any](c, fiber.StatusOK, "Article資料建立成功: "+clientData.Title, nil)
 	return c.Status(fiber.StatusOK).JSON(response)
 }
 
@@ -103,7 +116,7 @@ func DeleteArticle(c *fiber.Ctx, db *gorm.DB) error {
 	id, err := url.QueryUnescape(c.Params("id"))
 	if err != nil {
 		logrus.Error(err)
-		response := utils.ResponseFactory[any](c, fiber.StatusBadRequest, err.Error(), nil)
+		response := ResponseFactory[any](c, fiber.StatusBadRequest, err.Error(), nil)
 		return c.Status(fiber.StatusBadRequest).JSON(response)
 	}
 
@@ -115,7 +128,7 @@ func DeleteArticle(c *fiber.Ctx, db *gorm.DB) error {
 	db.Delete(&article)
 
 	logrus.Info("刪除Article成功" + id)
-	response := utils.ResponseFactory[any](c, fiber.StatusOK, "刪除Article成功: "+id, nil)
+	response := ResponseFactory[any](c, fiber.StatusOK, "刪除Article成功: "+id, nil)
 	return c.Status(fiber.StatusOK).JSON(response)
 }
 
@@ -127,7 +140,7 @@ func QueryArticleForTag(c *fiber.Ctx, db *gorm.DB) error {
 	name, err := url.QueryUnescape(c.Params("name"))
 	if err != nil {
 		logrus.Error(err)
-		response := utils.ResponseFactory[any](c, fiber.StatusBadRequest, err.Error(), nil)
+		response := ResponseFactory[any](c, fiber.StatusBadRequest, err.Error(), nil)
 		return c.Status(fiber.StatusBadRequest).JSON(response)
 	}
 	err = db.Joins("JOIN article_tags ON article_tags.article_id = articles.id").
@@ -136,10 +149,10 @@ func QueryArticleForTag(c *fiber.Ctx, db *gorm.DB) error {
 		Find(&responseData).Error
 	if err != nil {
 		logrus.Error(err)
-		response := utils.ResponseFactory[any](c, fiber.StatusInternalServerError, err.Error(), nil)
+		response := ResponseFactory[any](c, fiber.StatusInternalServerError, err.Error(), nil)
 		return c.Status(fiber.StatusInternalServerError).JSON(response)
 	}
 	logrus.Info("查詢指定Tag的Article成功: " + name)
-	response := utils.ResponseFactory(c, fiber.StatusOK, "查詢指定Tag的Article成功"+name, &responseData)
+	response := ResponseFactory(c, fiber.StatusOK, "查詢指定Tag的Article成功"+name, &responseData)
 	return c.Status(fiber.StatusOK).JSON(response)
 }

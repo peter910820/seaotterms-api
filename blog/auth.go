@@ -11,32 +11,34 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 
-	dto "seaotterms-api/dto/blog"
-	middleware "seaotterms-api/middleware/blog"
-	model "seaotterms-api/model/blog"
-	utils "seaotterms-api/utils/blog"
+	model "seaotterms-db/blog"
 )
+
+type LoginRequest struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+}
 
 // 取得使用者資料(本質上是會先進行GetUserInfo這個middlware)
 func Auth(c *fiber.Ctx, store *session.Store) error {
-	response := utils.ResponseFactory[any](c, fiber.StatusOK, "取得使用者資料成功", nil)
+	response := ResponseFactory[any](c, fiber.StatusOK, "取得使用者資料成功", nil)
 	return c.Status(fiber.StatusOK).JSON(response)
 }
 
 // login api
 func Login(c *fiber.Ctx, store *session.Store, db *gorm.DB) error {
-	var data dto.LoginRequest
-	var databaseData []dto.LoginRequest
+	var data LoginRequest
+	var databaseData []LoginRequest
 
 	if err := c.BodyParser(&data); err != nil {
 		logrus.Error(err)
-		response := utils.ResponseFactory[any](c, fiber.StatusBadRequest, err.Error(), nil)
+		response := ResponseFactory[any](c, fiber.StatusBadRequest, err.Error(), nil)
 		return c.Status(fiber.StatusBadRequest).JSON(response)
 	}
 
 	err := db.Model(&model.User{}).Find(&databaseData).Error
 	if err != nil {
-		response := utils.ResponseFactory[any](c, fiber.StatusInternalServerError, err.Error(), nil)
+		response := ResponseFactory[any](c, fiber.StatusInternalServerError, err.Error(), nil)
 		return c.Status(fiber.StatusInternalServerError).JSON(response)
 	}
 
@@ -48,11 +50,11 @@ func Login(c *fiber.Ctx, store *session.Store, db *gorm.DB) error {
 			if err != nil {
 				if errors.Is(err, bcrypt.ErrMismatchedHashAndPassword) {
 					logrus.Error("login error: password not correct")
-					response := utils.ResponseFactory[any](c, fiber.StatusUnauthorized, "密碼輸入錯誤", nil)
+					response := ResponseFactory[any](c, fiber.StatusUnauthorized, "密碼輸入錯誤", nil)
 					return c.Status(fiber.StatusUnauthorized).JSON(response)
 				} else {
 					logrus.Error(err)
-					response := utils.ResponseFactory[any](c, fiber.StatusInternalServerError, err.Error(), nil)
+					response := ResponseFactory[any](c, fiber.StatusInternalServerError, err.Error(), nil)
 					return c.Status(fiber.StatusInternalServerError).JSON(response)
 				}
 			}
@@ -62,11 +64,11 @@ func Login(c *fiber.Ctx, store *session.Store, db *gorm.DB) error {
 			err = db.Where("username = ?", data.Username).First(&userData).Error
 			if err != nil {
 				logrus.Error(err)
-				response := utils.ResponseFactory[any](c, fiber.StatusInternalServerError, err.Error(), nil)
+				response := ResponseFactory[any](c, fiber.StatusInternalServerError, err.Error(), nil)
 				return c.Status(fiber.StatusInternalServerError).JSON(response)
 			}
 
-			data := dto.UserInfo{
+			data := UserInfo{
 				ID:          userData.ID,
 				Username:    userData.Username,
 				Email:       userData.Email,
@@ -80,7 +82,7 @@ func Login(c *fiber.Ctx, store *session.Store, db *gorm.DB) error {
 			}
 
 			// 如果有登入紀錄，因為有重查一次DB，所以更新一次資料以及版號
-			value, ok := middleware.UserInfo[userData.ID]
+			value, ok := UserInfoInstance[userData.ID]
 			if ok {
 				value.Username = data.Username
 				value.Email = data.Email
@@ -92,23 +94,23 @@ func Login(c *fiber.Ctx, store *session.Store, db *gorm.DB) error {
 				data.Avatar = userData.Avatar
 				value.DataVersion++
 			} else {
-				middleware.UserInfo[userData.ID] = &data
+				UserInfoInstance[userData.ID] = &data
 			}
 
-			c.Locals("user_info", middleware.UserInfo[userData.ID])
+			c.Locals("user_info", UserInfoInstance[userData.ID])
 
 			setUserInfoSession(c, store, &data)
 
-			response := utils.ResponseFactory[any](c, fiber.StatusOK, fmt.Sprintf("使用者 %s 登入成功", data.Username), nil)
+			response := ResponseFactory[any](c, fiber.StatusOK, fmt.Sprintf("使用者 %s 登入成功", data.Username), nil)
 			return c.Status(fiber.StatusOK).JSON(response)
 		}
 	}
 	logrus.Error("user not found")
-	response := utils.ResponseFactory[any](c, fiber.StatusUnauthorized, "找不到該使用者: "+data.Username, nil)
+	response := ResponseFactory[any](c, fiber.StatusUnauthorized, "找不到該使用者: "+data.Username, nil)
 	return c.Status(fiber.StatusUnauthorized).JSON(response)
 }
 
-func setUserInfoSession(c *fiber.Ctx, store *session.Store, userInfo *dto.UserInfo) {
+func setUserInfoSession(c *fiber.Ctx, store *session.Store, userInfo *UserInfo) {
 	// set session
 	sess, err := store.Get(c)
 	if err != nil {
