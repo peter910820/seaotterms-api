@@ -6,10 +6,29 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/lib/pq"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 
 	"seaotterms-db/teach"
+)
+
+type (
+	ArtilceCreateRequest struct {
+		Title    string         `gorm:"NOT NULL" json:"title"`
+		SeriesID uint           `gorm:"NOT NULL" json:"seriesId"`
+		Image    string         `json:"image"`
+		Tags     pq.StringArray `gorm:"type:text[]" json:"tags"`
+		Content  string         `gorm:"NOT NULL" json:"content"`
+	}
+
+	ArtilceModifyRequest struct {
+		Title    string         `gorm:"NOT NULL" json:"title"`
+		SeriesID uint           `gorm:"NOT NULL" json:"seriesId"`
+		Image    string         `json:"image"`
+		Tags     pq.StringArray `gorm:"type:text[]" json:"tags"`
+		Content  string         `gorm:"NOT NULL" json:"content"`
+	}
 )
 
 type linkUpdateSeries struct {

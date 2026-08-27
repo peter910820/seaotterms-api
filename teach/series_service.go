@@ -11,6 +11,19 @@ import (
 	"seaotterms-db/teach"
 )
 
+// Request
+type (
+	SeriesCreateRequest struct {
+		Title string `gorm:"NOT NULL" json:"title"`
+		Image string `json:"image"`
+	}
+
+	SeriesModifyRequest struct {
+		Title string `gorm:"NOT NULL" json:"title"`
+		Image string `json:"image"`
+	}
+)
+
 func querySeries(c *fiber.Ctx, db *gorm.DB) error {
 	var responseData []teach.Series
 	// URL decoding
