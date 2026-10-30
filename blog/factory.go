@@ -1,7 +1,7 @@
 package blog
 
 import (
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 )
 
 type CommonResponse[T any] struct {
@@ -12,7 +12,7 @@ type CommonResponse[T any] struct {
 	Data       *T        `json:"data"`
 }
 
-func ResponseFactory[T any](c *fiber.Ctx, httpStatus int, msg string, data *T) CommonResponse[T] {
+func ResponseFactory[T any](c fiber.Ctx, httpStatus int, msg string, data *T) CommonResponse[T] {
 	response := CommonResponse[T]{}
 	userInfo, ok := c.Locals("user_info").(*UserInfo)
 	if ok {

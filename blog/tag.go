@@ -3,7 +3,7 @@ package blog
 import (
 	"strings"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 
@@ -15,7 +15,7 @@ type TagCreateRequest struct {
 	IconName string `json:"iconName"`
 }
 
-func QueryTag(c *fiber.Ctx, db *gorm.DB) error {
+func QueryTag(c fiber.Ctx, db *gorm.DB) error {
 	var responseData []model.Tag
 
 	err := db.Order("created_at desc").Find(&responseData).Error
@@ -36,11 +36,11 @@ func QueryTag(c *fiber.Ctx, db *gorm.DB) error {
 	return c.Status(fiber.StatusOK).JSON(response)
 }
 
-func CreateTag(c *fiber.Ctx, db *gorm.DB) error {
+func CreateTag(c fiber.Ctx, db *gorm.DB) error {
 	var clientData TagCreateRequest
 
 	// load client data
-	if err := c.BodyParser(&clientData); err != nil {
+	if err := c.Bind().Body(&clientData); err != nil {
 		logrus.Error(err.Error())
 		response := ResponseFactory[any](c, fiber.StatusInternalServerError, err.Error(), nil)
 		return c.Status(fiber.StatusInternalServerError).JSON(response)

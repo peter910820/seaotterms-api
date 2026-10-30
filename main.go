@@ -7,9 +7,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/cors"
-	"github.com/gofiber/fiber/v2/middleware/session"
+	"github.com/gofiber/fiber/v3/extractors"
+
+	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/cors"
+	"github.com/gofiber/fiber/v3/middleware/session"
 	"github.com/joho/godotenv"
 	"github.com/sirupsen/logrus"
 
@@ -41,11 +43,11 @@ func init() {
 	}
 
 	// init store
-	blogStore = session.New(session.Config{
-		Expiration:     14 * 24 * time.Hour,
+	blogStore = session.NewStore(session.Config{
+		IdleTimeout:    14 * 24 * time.Hour,
 		CookieDomain:   os.Getenv("SESSION_DOMAIN"),
 		CookieSameSite: "None",
-		KeyLookup:      "cookie:blog-userinfo-session",
+		Extractor:      extractors.FromCookie("blog-userinfo-session"),
 		// CookieHTTPOnly: true,
 	}) // blog user session
 
@@ -76,9 +78,9 @@ func init() {
 func main() {
 	app := fiber.New()
 	app.Use(cors.New(cors.Config{
-		AllowOrigins:     os.Getenv("CORS_URL"),
-		AllowMethods:     "GET,POST,HEAD,PUT,DELETE,PATCH",
-		AllowHeaders:     "Origin,Content-Type,Accept",
+		AllowOrigins:     strings.Split(os.Getenv("CORS_URL"), ","),
+		AllowMethods:     []string{"GET", "POST", "HEAD", "PUT", "DELETE", "PATCH"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept"},
 		AllowCredentials: true,
 	}))
 	// api route group

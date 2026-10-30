@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/session"
+	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/session"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -58,7 +58,7 @@ type apiAccount struct {
 	Email    string
 }
 
-func QueryUser(c *fiber.Ctx, db *gorm.DB) error {
+func QueryUser(c fiber.Ctx, db *gorm.DB) error {
 	var data []UserQueryResponse
 	err := db.Table("users").Order("COALESCE(updated_at, created_at) DESC").Find(&data).Error
 	if err != nil {
@@ -71,11 +71,11 @@ func QueryUser(c *fiber.Ctx, db *gorm.DB) error {
 	return c.Status(fiber.StatusOK).JSON(response)
 }
 
-func CreateUser(c *fiber.Ctx, db *gorm.DB) error {
+func CreateUser(c fiber.Ctx, db *gorm.DB) error {
 	var data RegisterRequest
 	var find []apiAccount
 
-	if err := c.BodyParser(&data); err != nil {
+	if err := c.Bind().Body(&data); err != nil {
 		logrus.Error(err)
 		response := ResponseFactory[any](c, fiber.StatusBadRequest, "客戶端資料錯誤", nil)
 		return c.Status(fiber.StatusBadRequest).JSON(response)
@@ -124,10 +124,10 @@ func CreateUser(c *fiber.Ctx, db *gorm.DB) error {
 	return c.Status(fiber.StatusOK).JSON(response)
 }
 
-func UpdateUser(c *fiber.Ctx, db *gorm.DB, store *session.Store) error {
+func UpdateUser(c fiber.Ctx, db *gorm.DB, store *session.Store) error {
 	// load client data
 	var clientData UserUpdateRequest
-	if err := c.BodyParser(&clientData); err != nil {
+	if err := c.Bind().Body(&clientData); err != nil {
 		logrus.Error(err)
 		response := ResponseFactory[any](c, fiber.StatusBadRequest, err.Error(), nil)
 		return c.Status(fiber.StatusBadRequest).JSON(response)

@@ -4,8 +4,8 @@ import (
 	"errors"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/session"
+	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/session"
 	"github.com/sirupsen/logrus"
 )
 
@@ -29,7 +29,7 @@ var (
 
 // 用Token檢查使用者資料(預設前端全域註冊、回傳)
 func GetUserInfo(store *session.Store) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		sess, err := store.Get(c)
 		if err != nil {
 			logrus.Fatal(err)
@@ -49,7 +49,7 @@ func GetUserInfo(store *session.Store) fiber.Handler {
 
 // 檢查有無登入，沒登入直接中止API並回傳錯誤
 func CheckLogin(store *session.Store) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		userInfo, err := checkLogin(c, store)
 		if err != nil {
 			logrus.Warn(err)
@@ -63,7 +63,7 @@ func CheckLogin(store *session.Store) fiber.Handler {
 
 // 檢查是不是網站管理者，沒登入直接中止API並回傳錯誤
 func CheckManagement(store *session.Store) fiber.Handler {
-	return func(c *fiber.Ctx) error {
+	return func(c fiber.Ctx) error {
 		userInfo, err := checkLogin(c, store)
 		if err != nil {
 			logrus.Warn(err)
@@ -81,7 +81,7 @@ func CheckManagement(store *session.Store) fiber.Handler {
 }
 
 // utils
-func checkLogin(c *fiber.Ctx, store *session.Store) (*UserInfo, error) {
+func checkLogin(c fiber.Ctx, store *session.Store) (*UserInfo, error) {
 	sess, err := store.Get(c)
 	if err != nil {
 		logrus.Fatal(err)

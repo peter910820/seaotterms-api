@@ -1,12 +1,12 @@
 package teach
 
 import (
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
 
-func dbErrHandler(c *fiber.Ctx, err error) error {
+func dbErrHandler(c fiber.Ctx, err error) error {
 	logrus.Error(err)
 	if err == gorm.ErrRecordNotFound {
 		//404

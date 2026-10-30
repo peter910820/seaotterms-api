@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"github.com/lib/pq"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
@@ -36,7 +36,7 @@ type linkUpdateSeries struct {
 	UpdateTime    time.Time
 }
 
-func queryArticle(c *fiber.Ctx, db *gorm.DB) error {
+func queryArticle(c fiber.Ctx, db *gorm.DB) error {
 	var responseData []teach.Article
 	var err error
 
@@ -68,10 +68,10 @@ func queryArticle(c *fiber.Ctx, db *gorm.DB) error {
 	})
 }
 
-func createArticle(c *fiber.Ctx, db *gorm.DB) error {
+func createArticle(c fiber.Ctx, db *gorm.DB) error {
 	var clientData ArtilceCreateRequest
 	// load client data
-	if err := c.BodyParser(&clientData); err != nil {
+	if err := c.Bind().Body(&clientData); err != nil {
 		logrus.Error(err.Error())
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"msg": err.Error(),
@@ -131,10 +131,10 @@ func createArticle(c *fiber.Ctx, db *gorm.DB) error {
 	})
 }
 
-func modifyArticle(c *fiber.Ctx, db *gorm.DB) error {
+func modifyArticle(c fiber.Ctx, db *gorm.DB) error {
 	var clientData ArtilceModifyRequest
 	// load client data
-	if err := c.BodyParser(&clientData); err != nil {
+	if err := c.Bind().Body(&clientData); err != nil {
 		logrus.Error(err.Error())
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"msg": err.Error(),

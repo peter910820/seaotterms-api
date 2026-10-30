@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 
@@ -41,7 +41,7 @@ type (
 	}
 )
 
-func QuerySystemTodo(c *fiber.Ctx, db *gorm.DB) error {
+func QuerySystemTodo(c fiber.Ctx, db *gorm.DB) error {
 	// get query param
 	id := c.Query("id")
 	systemName := c.Query("system_name")
@@ -83,10 +83,10 @@ func QuerySystemTodo(c *fiber.Ctx, db *gorm.DB) error {
 	return c.Status(fiber.StatusOK).JSON(response)
 }
 
-func CreateSystemTodo(c *fiber.Ctx, db *gorm.DB) error {
+func CreateSystemTodo(c fiber.Ctx, db *gorm.DB) error {
 	// load client data
 	var clientData SystemTodoCreateRequest
-	if err := c.BodyParser(&clientData); err != nil {
+	if err := c.Bind().Body(&clientData); err != nil {
 		logrus.Error(err)
 		response := ResponseFactory[any](c, fiber.StatusInternalServerError, err.Error(), nil)
 		return c.Status(fiber.StatusInternalServerError).JSON(response)
@@ -113,10 +113,10 @@ func CreateSystemTodo(c *fiber.Ctx, db *gorm.DB) error {
 	return c.Status(fiber.StatusOK).JSON(response)
 }
 
-func UpdateSystemTodo(c *fiber.Ctx, db *gorm.DB) error {
+func UpdateSystemTodo(c fiber.Ctx, db *gorm.DB) error {
 	// load client data
 	var clientData SystemTodoUpdateRequest
-	if err := c.BodyParser(&clientData); err != nil {
+	if err := c.Bind().Body(&clientData); err != nil {
 		logrus.Error(err)
 		response := ResponseFactory[any](c, fiber.StatusInternalServerError, err.Error(), nil)
 		return c.Status(fiber.StatusInternalServerError).JSON(response)
@@ -141,10 +141,10 @@ func UpdateSystemTodo(c *fiber.Ctx, db *gorm.DB) error {
 	return c.Status(fiber.StatusOK).JSON(response)
 }
 
-func QuickUpdateSystemTodo(c *fiber.Ctx, db *gorm.DB) error {
+func QuickUpdateSystemTodo(c fiber.Ctx, db *gorm.DB) error {
 	// load client data
 	var clientData QuickSystemTodoUpdateRequest
-	if err := c.BodyParser(&clientData); err != nil {
+	if err := c.Bind().Body(&clientData); err != nil {
 		logrus.Error(err)
 		response := ResponseFactory[any](c, fiber.StatusInternalServerError, err.Error(), nil)
 		return c.Status(fiber.StatusInternalServerError).JSON(response)
@@ -169,7 +169,7 @@ func QuickUpdateSystemTodo(c *fiber.Ctx, db *gorm.DB) error {
 	return c.Status(fiber.StatusOK).JSON(response)
 }
 
-func DeleteSystemTodo(c *fiber.Ctx, db *gorm.DB) error {
+func DeleteSystemTodo(c fiber.Ctx, db *gorm.DB) error {
 	err := db.Where("id = ?", c.Params("id")).Delete(&model.SystemTodo{}).Error
 	if err != nil {
 		logrus.Error(err)

@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 
@@ -19,7 +19,7 @@ type TodoUpdateRequest struct {
 	UpdateName string    `json:"updateName"`
 }
 
-func QueryTodoByOwner(c *fiber.Ctx, db *gorm.DB) error {
+func QueryTodoByOwner(c fiber.Ctx, db *gorm.DB) error {
 	// URL decoding
 	owner, err := url.QueryUnescape(c.Params("owner"))
 	if err != nil {
@@ -46,10 +46,10 @@ func QueryTodoByOwner(c *fiber.Ctx, db *gorm.DB) error {
 	return c.Status(fiber.StatusOK).JSON(response)
 }
 
-func CreateTodo(c *fiber.Ctx, db *gorm.DB) error {
+func CreateTodo(c fiber.Ctx, db *gorm.DB) error {
 	// load client data
 	var clientData model.Todo
-	if err := c.BodyParser(&clientData); err != nil {
+	if err := c.Bind().Body(&clientData); err != nil {
 		logrus.Error(err)
 		response := ResponseFactory[any](c, fiber.StatusBadRequest, "客戶端資料錯誤", nil)
 		return c.Status(fiber.StatusBadRequest).JSON(response)
@@ -99,11 +99,11 @@ func CreateTodo(c *fiber.Ctx, db *gorm.DB) error {
 	return c.Status(fiber.StatusOK).JSON(response)
 }
 
-func UpdateTodoStatus(c *fiber.Ctx, db *gorm.DB) error {
+func UpdateTodoStatus(c fiber.Ctx, db *gorm.DB) error {
 
 	// load client data
 	var clientData TodoUpdateRequest
-	if err := c.BodyParser(&clientData); err != nil {
+	if err := c.Bind().Body(&clientData); err != nil {
 		logrus.Error(err)
 		response := ResponseFactory[any](c, fiber.StatusBadRequest, "客戶端資料錯誤", nil)
 		return c.Status(fiber.StatusBadRequest).JSON(response)
@@ -141,7 +141,7 @@ func UpdateTodoStatus(c *fiber.Ctx, db *gorm.DB) error {
 	return c.Status(fiber.StatusOK).JSON(response)
 }
 
-func DeleteTodo(c *fiber.Ctx, db *gorm.DB) error {
+func DeleteTodo(c fiber.Ctx, db *gorm.DB) error {
 	err := db.Where("id = ?", c.Params("id")).Delete(&model.Todo{}).Error
 	if err != nil {
 		logrus.Error(err)
@@ -174,7 +174,7 @@ func DeleteTodo(c *fiber.Ctx, db *gorm.DB) error {
 
 // 用使用者登入資料取得該使用者的全部Todo資料
 // 用在增、改、刪三個API的回傳值，降低前端Request的次數
-func getTodo(c *fiber.Ctx, db *gorm.DB) (*[]model.Todo, error) {
+func getTodo(c fiber.Ctx, db *gorm.DB) (*[]model.Todo, error) {
 	userInfo, ok := c.Locals("user_info").(*UserInfo)
 	if !ok {
 		logrus.Fatal("使用者登入版號表異常")

@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/session"
+	"github.com/gofiber/fiber/v3"
+	"github.com/gofiber/fiber/v3/middleware/session"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -20,17 +20,17 @@ type LoginRequest struct {
 }
 
 // 取得使用者資料(本質上是會先進行GetUserInfo這個middlware)
-func Auth(c *fiber.Ctx, store *session.Store) error {
+func Auth(c fiber.Ctx, store *session.Store) error {
 	response := ResponseFactory[any](c, fiber.StatusOK, "取得使用者資料成功", nil)
 	return c.Status(fiber.StatusOK).JSON(response)
 }
 
 // login api
-func Login(c *fiber.Ctx, store *session.Store, db *gorm.DB) error {
+func Login(c fiber.Ctx, store *session.Store, db *gorm.DB) error {
 	var data LoginRequest
 	var databaseData []LoginRequest
 
-	if err := c.BodyParser(&data); err != nil {
+	if err := c.Bind().Body(&data); err != nil {
 		logrus.Error(err)
 		response := ResponseFactory[any](c, fiber.StatusBadRequest, err.Error(), nil)
 		return c.Status(fiber.StatusBadRequest).JSON(response)
@@ -110,7 +110,7 @@ func Login(c *fiber.Ctx, store *session.Store, db *gorm.DB) error {
 	return c.Status(fiber.StatusUnauthorized).JSON(response)
 }
 
-func setUserInfoSession(c *fiber.Ctx, store *session.Store, userInfo *UserInfo) {
+func setUserInfoSession(c fiber.Ctx, store *session.Store, userInfo *UserInfo) {
 	// set session
 	sess, err := store.Get(c)
 	if err != nil {

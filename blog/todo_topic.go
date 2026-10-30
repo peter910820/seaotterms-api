@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 
@@ -17,7 +17,7 @@ type TodoTopicCreateRequest struct {
 	UpdateName string `json:"updateName"`
 }
 
-func QueryTodoTopic(c *fiber.Ctx, db *gorm.DB) error {
+func QueryTodoTopic(c fiber.Ctx, db *gorm.DB) error {
 	// URL decoding
 	owner, err := url.QueryUnescape(c.Params("owner"))
 	if err != nil {
@@ -44,10 +44,10 @@ func QueryTodoTopic(c *fiber.Ctx, db *gorm.DB) error {
 	return c.Status(fiber.StatusOK).JSON(response)
 }
 
-func CreateTodoTopic(c *fiber.Ctx, db *gorm.DB) error {
+func CreateTodoTopic(c fiber.Ctx, db *gorm.DB) error {
 	// load client data
 	var clientData TodoTopicCreateRequest
-	if err := c.BodyParser(&clientData); err != nil {
+	if err := c.Bind().Body(&clientData); err != nil {
 		logrus.Error(err)
 		response := ResponseFactory[any](c, fiber.StatusInternalServerError, err.Error(), nil)
 		return c.Status(fiber.StatusInternalServerError).JSON(response)

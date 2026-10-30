@@ -4,7 +4,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 
@@ -27,7 +27,7 @@ type (
 )
 
 // query article data (all or use id to query single article data)
-func QueryArticle(c *fiber.Ctx, db *gorm.DB) error {
+func QueryArticle(c fiber.Ctx, db *gorm.DB) error {
 	var responseData []model.Article
 	var err error
 
@@ -55,10 +55,10 @@ func QueryArticle(c *fiber.Ctx, db *gorm.DB) error {
 }
 
 // create article data
-func CreateArticle(c *fiber.Ctx, db *gorm.DB) error {
+func CreateArticle(c fiber.Ctx, db *gorm.DB) error {
 	var clientData ArticleCreateRequest
 
-	if err := c.BodyParser(&clientData); err != nil {
+	if err := c.Bind().Body(&clientData); err != nil {
 		logrus.Error(err)
 		response := ResponseFactory[any](c, fiber.StatusInternalServerError, err.Error(), nil)
 		return c.Status(fiber.StatusInternalServerError).JSON(response)
@@ -96,10 +96,10 @@ func CreateArticle(c *fiber.Ctx, db *gorm.DB) error {
 	return c.Status(fiber.StatusOK).JSON(response)
 }
 
-// func UpdateArticle(c *fiber.Ctx, db *gorm.DB) error {
+// func UpdateArticle(c fiber.Ctx, db *gorm.DB) error {
 // 	// load client data
 // 	var clientData
-// 	if err := c.BodyParser(&clientData); err != nil {
+// 	if err := c.Bind().Body(&clientData); err != nil {
 // 		logrus.Error(err)
 // 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 // 			"msg": err.Error(),
@@ -110,7 +110,7 @@ func CreateArticle(c *fiber.Ctx, db *gorm.DB) error {
 // }
 
 // Delete article data
-func DeleteArticle(c *fiber.Ctx, db *gorm.DB) error {
+func DeleteArticle(c fiber.Ctx, db *gorm.DB) error {
 
 	// URL decoding
 	id, err := url.QueryUnescape(c.Params("id"))
@@ -133,7 +133,7 @@ func DeleteArticle(c *fiber.Ctx, db *gorm.DB) error {
 }
 
 // Query Article data use tag name
-func QueryArticleForTag(c *fiber.Ctx, db *gorm.DB) error {
+func QueryArticleForTag(c fiber.Ctx, db *gorm.DB) error {
 	var responseData []model.Article
 
 	// URL decoding
