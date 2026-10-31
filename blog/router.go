@@ -144,9 +144,10 @@ func userRouter(blogGroup fiber.Router, dbm *seaottermsdb.DBModel, store *sessio
 		return QueryUser(c, dbm.DB)
 	})
 
-	userGroup.Post("/", func(c fiber.Ctx) error {
-		return CreateUser(c, dbm.DB)
-	})
+	// 註冊目前不開放。
+	// userGroup.Post("/", func(c fiber.Ctx) error {
+	// 	return CreateUser(c, dbm.DB)
+	// })
 	userGroup.Patch("/:id", CheckLogin(store), func(c fiber.Ctx) error {
 		return UpdateUser(c, dbm.DB, store)
 	})
