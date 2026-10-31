@@ -1,7 +1,9 @@
 package blog
 
 import (
+	"errors"
 	"net/url"
+	"strconv"
 	"strings"
 
 	"github.com/gofiber/fiber/v3"
@@ -20,9 +22,9 @@ type (
 	}
 
 	ArticleUpdateRequest struct {
-		Title   string      `gorm:"NOT NULL" json:"title"`
-		Content string      `gorm:"NOT NULL" json:"content"`
-		Tags    []model.Tag `gorm:"many2many:article_tags" json:"tags"`
+		Title   *string      `json:"title"`
+		Content *string      `json:"content"`
+		Tags    *[]model.Tag `json:"tags"`
 	}
 )
 
@@ -103,18 +105,84 @@ func CreateArticle(c fiber.Ctx, db *gorm.DB) error {
 	return c.Status(fiber.StatusOK).JSON(response)
 }
 
-// func UpdateArticle(c fiber.Ctx, db *gorm.DB) error {
-// 	// load client data
-// 	var clientData
-// 	if err := c.Bind().Body(&clientData); err != nil {
-// 		logrus.Error(err)
-// 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-// 			"msg": err.Error(),
-// 		})
-// 	}
-// 	response := dto.CreateDefalutCommonResponse[[]model.Article]()
+// update article data
+func UpdateArticle(c fiber.Ctx, db *gorm.DB) error {
+	var clientData ArticleUpdateRequest
+	if err := c.Bind().Body(&clientData); err != nil {
+		response := ResponseFactory[any](c, fiber.StatusBadRequest, err.Error(), nil)
+		return c.Status(fiber.StatusBadRequest).JSON(response)
+	}
 
-// }
+	id := c.Params("id")
+	articleID, err := strconv.ParseUint(id, 10, 64)
+	if err != nil || articleID == 0 {
+		response := ResponseFactory[any](c, fiber.StatusBadRequest, "文章 ID 無效", nil)
+		return c.Status(fiber.StatusBadRequest).JSON(response)
+	}
+	if clientData.Title == nil && clientData.Content == nil && clientData.Tags == nil {
+		response := ResponseFactory[any](c, fiber.StatusBadRequest, "沒有提供要更新的資料", nil)
+		return c.Status(fiber.StatusBadRequest).JSON(response)
+	}
+
+	var tags []model.Tag
+	if clientData.Tags != nil {
+		names := make([]string, 0, len(*clientData.Tags))
+		seen := make(map[string]bool)
+		for _, tag := range *clientData.Tags {
+			if strings.TrimSpace(tag.Name) == "" || seen[tag.Name] {
+				response := ResponseFactory[any](c, fiber.StatusBadRequest, "標籤名稱不可為空或重複", nil)
+				return c.Status(fiber.StatusBadRequest).JSON(response)
+			}
+			seen[tag.Name] = true
+			names = append(names, tag.Name)
+			tags = append(tags, model.Tag{Name: tag.Name})
+		}
+		if len(names) > 0 {
+			count, err := model.CountTags(db, names)
+			if err != nil {
+				logrus.Error(err)
+				response := ResponseFactory[any](c, fiber.StatusInternalServerError, err.Error(), nil)
+				return c.Status(fiber.StatusInternalServerError).JSON(response)
+			}
+			if count != int64(len(names)) {
+				response := ResponseFactory[any](c, fiber.StatusBadRequest, "缺少tags，請先建立tags", nil)
+				return c.Status(fiber.StatusBadRequest).JSON(response)
+			}
+		}
+	}
+
+	err = db.Transaction(func(tx *gorm.DB) error {
+		article, err := model.FindArticleByID(tx, id)
+		if err != nil {
+			return err
+		}
+		if clientData.Title != nil {
+			article.Title = *clientData.Title
+		}
+		if clientData.Content != nil {
+			article.Content = *clientData.Content
+		}
+		if err := model.UpdateArticle(tx, article); err != nil {
+			return err
+		}
+		if clientData.Tags != nil {
+			return model.ReplaceArticleTags(tx, article, tags)
+		}
+		return nil
+	})
+	if err != nil {
+		logrus.Error(err)
+		status := fiber.StatusInternalServerError
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			status = fiber.StatusNotFound
+		}
+		response := ResponseFactory[any](c, status, err.Error(), nil)
+		return c.Status(status).JSON(response)
+	}
+
+	response := ResponseFactory[any](c, fiber.StatusOK, "Article資料更新成功: "+id, nil)
+	return c.Status(fiber.StatusOK).JSON(response)
+}
 
 // Delete article data
 func DeleteArticle(c fiber.Ctx, db *gorm.DB) error {

@@ -37,14 +37,13 @@ func articleRouter(blogGroup fiber.Router, dbm *seaottermsdb.DBModel, store *ses
 		return QueryArticle(c, dbm.DB)
 	})
 
-	// No middleware has been implemented yet
 	articleGroup.Post("/", CheckManagement(store), func(c fiber.Ctx) error {
 		return CreateArticle(c, dbm.DB)
 	})
 
-	// articleGroup.Post("/:id", middleware.CheckManagement(store), func(c fiber.Ctx) error {
-	// 	return ModifyArticle(c, dbm.DB)
-	// })
+	articleGroup.Patch("/:id", CheckManagement(store), func(c fiber.Ctx) error {
+		return UpdateArticle(c, dbm.DB)
+	})
 
 	articleGroup.Delete("/:id", CheckManagement(store), func(c fiber.Ctx) error {
 		return DeleteArticle(c, dbm.DB)
