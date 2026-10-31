@@ -25,6 +25,23 @@ func Auth(c fiber.Ctx, store *session.Store) error {
 	return c.Status(fiber.StatusOK).JSON(response)
 }
 
+// Logout destroys the current session without affecting other sessions
+func Logout(c fiber.Ctx, store *session.Store) error {
+	sess, err := store.Get(c)
+	if err != nil {
+		logrus.Error(err)
+		return c.SendStatus(fiber.StatusInternalServerError)
+	}
+	if err := sess.Destroy(); err != nil {
+		logrus.Error(err)
+		return c.SendStatus(fiber.StatusInternalServerError)
+	}
+
+	c.Locals("user_info", nil)
+	response := ResponseFactory[any](c, fiber.StatusOK, "登出成功", nil)
+	return c.Status(fiber.StatusOK).JSON(response)
+}
+
 // login api
 func Login(c fiber.Ctx, store *session.Store, db *gorm.DB) error {
 	var data LoginRequest

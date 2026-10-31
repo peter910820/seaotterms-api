@@ -61,6 +61,10 @@ func authRouter(blogGroup fiber.Router, dbm *seaottermsdb.DBModel, store *sessio
 	authGroup.Post("/login", func(c fiber.Ctx) error {
 		return Login(c, store, dbm.DB)
 	})
+
+	authGroup.Post("/logout", func(c fiber.Ctx) error {
+		return Logout(c, store)
+	})
 }
 
 func systemTodoRouter(blogGroup fiber.Router, dbm *seaottermsdb.DBModel, store *session.Store) {
