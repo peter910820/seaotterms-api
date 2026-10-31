@@ -83,16 +83,17 @@ func Login(c fiber.Ctx, store *session.Store, db *gorm.DB) error {
 			}
 
 			data := UserInfo{
-				ID:          userData.ID,
-				Username:    userData.Username,
-				Email:       userData.Email,
-				Exp:         userData.Exp,
-				Management:  userData.Management,
-				CreatedAt:   userData.CreatedAt,
-				UpdatedAt:   userData.UpdatedAt,
-				UpdateName:  userData.UpdateName,
-				Avatar:      userData.Avatar,
-				DataVersion: 1,
+				ID:           userData.ID,
+				Username:     userData.Username,
+				Email:        userData.Email,
+				Exp:          userData.Exp,
+				Management:   userData.Management,
+				CreatedAt:    userData.CreatedAt,
+				UpdatedAt:    userData.UpdatedAt,
+				UpdateName:   userData.UpdateName,
+				Avatar:       userData.Avatar,
+				Introduction: userData.Introduction,
+				DataVersion:  1,
 			}
 
 			// 如果有登入紀錄，因為有重查一次DB，所以更新一次資料以及版號
@@ -106,6 +107,7 @@ func Login(c fiber.Ctx, store *session.Store, db *gorm.DB) error {
 				value.UpdatedAt = data.UpdatedAt
 				value.UpdateName = data.UpdateName
 				data.Avatar = userData.Avatar
+				value.Introduction = data.Introduction
 				value.DataVersion++
 			} else {
 				UserInfoInstance[userData.ID] = &data

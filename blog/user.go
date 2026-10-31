@@ -18,15 +18,16 @@ import (
 // Request
 type (
 	UserUpdateRequest struct {
-		ID         uint      `json:"id"`
-		Username   string    `json:"username"`
-		Email      string    `json:"email"`
-		Exp        int       `json:"exp"`
-		Management bool      `json:"management"`
-		CreatedAt  time.Time `json:"created_at"`
-		UpdatedAt  time.Time `json:"updated_at"`
-		UpdateName string    `json:"update_name"`
-		Avatar     string    `json:"avatar"`
+		ID           uint      `json:"id"`
+		Username     string    `json:"username"`
+		Email        string    `json:"email"`
+		Exp          int       `json:"exp"`
+		Management   bool      `json:"management"`
+		CreatedAt    time.Time `json:"created_at"`
+		UpdatedAt    time.Time `json:"updated_at"`
+		UpdateName   string    `json:"update_name"`
+		Avatar       string    `json:"avatar"`
+		Introduction *string   `json:"introduction"`
 	}
 
 	RegisterRequest struct {
@@ -163,10 +164,15 @@ func UpdateUser(c fiber.Ctx, db *gorm.DB, store *session.Store) error {
 
 	timeNow := time.Now()
 	if uint(u) == userInfo.ID {
-		err = model.UpdateUserAvatar(db, u, &model.User{
-			UpdatedAt:  timeNow,
-			UpdateName: clientData.Username,
-			Avatar:     clientData.Avatar,
+		introduction := userInfo.Introduction
+		if clientData.Introduction != nil {
+			introduction = *clientData.Introduction
+		}
+		err = model.UpdateUserProfile(db, u, &model.User{
+			UpdatedAt:    timeNow,
+			UpdateName:   clientData.Username,
+			Avatar:       clientData.Avatar,
+			Introduction: introduction,
 		})
 	} else {
 		err = model.UpdateUserManagement(db, u, &model.User{
@@ -211,6 +217,9 @@ func UpdateUser(c fiber.Ctx, db *gorm.DB, store *session.Store) error {
 	userInfoCache.UpdatedAt = timeNow
 	userInfoCache.UpdateName = clientData.Username
 	userInfoCache.Avatar = clientData.Avatar
+	if clientData.Introduction != nil {
+		userInfoCache.Introduction = *clientData.Introduction
+	}
 	userInfoCache.DataVersion++
 
 	c.Locals("user_info", userInfoCache)
