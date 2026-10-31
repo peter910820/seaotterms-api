@@ -52,20 +52,17 @@ func QuerySystemTodo(c fiber.Ctx, db *gorm.DB) error {
 	}
 
 	var data []model.SystemTodo
-	if id == "" && systemName == "" && status == 999 {
-		err = db.Order("COALESCE(updated_at, created_at) DESC").Find(&data).Error
-	} else {
-		if id != "" {
-			err = db.Where("id = ?", id).Order("COALESCE(updated_at, created_at) DESC").Find(&data).Error
-		} else {
-			if systemName != "" {
-				db = db.Where("system_name = ?", systemName)
-			}
-			if status != 999 {
-				db = db.Where("status = ?", status)
-			}
-			err = db.Order("COALESCE(updated_at, created_at) DESC").Find(&data).Error
-		}
+	switch {
+	case id != "":
+		data, err = model.FindSystemTodoByID(db, id)
+	case systemName != "" && status != 999:
+		data, err = model.FindSystemTodosBySystemNameAndStatus(db, systemName, status)
+	case systemName != "":
+		data, err = model.FindSystemTodosBySystemName(db, systemName)
+	case status != 999:
+		data, err = model.FindSystemTodosByStatus(db, status)
+	default:
+		data, err = model.FindAllSystemTodos(db)
 	}
 	if err != nil {
 		logrus.Error(err)
@@ -102,7 +99,7 @@ func CreateSystemTodo(c fiber.Ctx, db *gorm.DB) error {
 		CreatedName: clientData.CreatedName,
 	}
 
-	err := db.Create(&data).Error
+	err := model.CreateSystemTodo(db, &data)
 	if err != nil {
 		logrus.Error(err)
 		response := ResponseFactory[any](c, fiber.StatusInternalServerError, err.Error(), nil)
@@ -122,9 +119,7 @@ func UpdateSystemTodo(c fiber.Ctx, db *gorm.DB) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(response)
 	}
 	clientData.UpdatedAt = time.Now()
-	err := db.Model(&model.SystemTodo{}).Where("id = ?", c.Params("id")).
-		Select("system_name", "title", "detail", "status", "deadline", "urgency", "updated_at", "updated_name").
-		Updates(clientData).Error
+	err := model.UpdateSystemTodo(db, c.Params("id"), &model.SystemTodo{SystemName: clientData.SystemName, Title: clientData.Title, Detail: clientData.Detail, Status: clientData.Status, Deadline: clientData.Deadline, Urgency: clientData.Urgency, UpdatedAt: clientData.UpdatedAt, UpdatedName: clientData.UpdatedName})
 	if err != nil {
 		logrus.Error(err)
 		// if record not exist
@@ -150,9 +145,7 @@ func QuickUpdateSystemTodo(c fiber.Ctx, db *gorm.DB) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(response)
 	}
 	clientData.UpdatedAt = time.Now()
-	err := db.Model(&model.SystemTodo{}).Where("id = ?", c.Params("id")).
-		Select("status", "updated_at", "updated_name").
-		Updates(clientData).Error
+	err := model.QuickUpdateSystemTodo(db, c.Params("id"), &model.SystemTodo{Status: clientData.Status, UpdatedAt: clientData.UpdatedAt, UpdatedName: clientData.UpdatedName})
 	if err != nil {
 		logrus.Error(err)
 		// if record not exist
@@ -170,7 +163,7 @@ func QuickUpdateSystemTodo(c fiber.Ctx, db *gorm.DB) error {
 }
 
 func DeleteSystemTodo(c fiber.Ctx, db *gorm.DB) error {
-	err := db.Where("id = ?", c.Params("id")).Delete(&model.SystemTodo{}).Error
+	err := model.DeleteSystemTodo(db, c.Params("id"))
 	if err != nil {
 		logrus.Error(err)
 		// if record not exist

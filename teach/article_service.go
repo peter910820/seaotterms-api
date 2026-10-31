@@ -31,11 +31,6 @@ type (
 	}
 )
 
-type linkUpdateSeries struct {
-	ArticleAmount uint
-	UpdateTime    time.Time
-}
-
 func queryArticle(c fiber.Ctx, db *gorm.DB) error {
 	var responseData []teach.Article
 	var err error
@@ -107,13 +102,7 @@ func createArticle(c fiber.Ctx, db *gorm.DB) error {
 		}
 
 		// 2. update series
-		err := tx.Model(&teach.Series{}).
-			Where("id = ?", clientData.SeriesID).
-			Select("article_amount", "updated_at").
-			Updates(linkUpdateSeries{
-				ArticleAmount: seriesData.ArticleAmount + 1,
-				UpdateTime:    time.Now(),
-			}).Error
+		err := teach.UpdateSeriesArticleAmount(tx, clientData.SeriesID, seriesData.ArticleAmount+1, time.Now())
 
 		if err != nil {
 			return err

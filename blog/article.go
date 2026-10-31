@@ -38,10 +38,14 @@ func QueryArticle(c fiber.Ctx, db *gorm.DB) error {
 		return c.Status(fiber.StatusBadRequest).JSON(response)
 	}
 
-	if articleID != "" {
-		err = db.Preload("Tags").First(&responseData, articleID).Error
+	if articleID == "" {
+		responseData, err = model.FindAllArticles(db)
 	} else {
-		err = db.Preload("Tags").Order("created_at desc").Find(&responseData).Error
+		var article *model.Article
+		article, err = model.FindArticleByID(db, articleID)
+		if err == nil {
+			responseData = []model.Article{*article}
+		}
 	}
 	if err != nil {
 		logrus.Error(err)
@@ -65,8 +69,11 @@ func CreateArticle(c fiber.Ctx, db *gorm.DB) error {
 	}
 
 	if len(clientData.Tags) > 0 {
-		var count int64
-		db.Model(&model.Tag{}).Where("name IN ?", clientData.Tags).Count(&count)
+		count, err := model.CountTags(db, clientData.Tags)
+		if err != nil {
+			response := ResponseFactory[any](c, fiber.StatusInternalServerError, err.Error(), nil)
+			return c.Status(fiber.StatusInternalServerError).JSON(response)
+		}
 		if count != int64(len(clientData.Tags)) {
 			logrus.Error("缺少tags，請先建立tags")
 			response := ResponseFactory[any](c, fiber.StatusInternalServerError, "缺少tags，請先建立tags", nil)
@@ -85,7 +92,7 @@ func CreateArticle(c fiber.Ctx, db *gorm.DB) error {
 		}
 	}
 
-	if err := db.Create(&data).Error; err != nil {
+	if err := model.CreateArticle(db, &data); err != nil {
 		logrus.Error(err)
 		response := ResponseFactory[any](c, fiber.StatusInternalServerError, err.Error(), nil)
 		return c.Status(fiber.StatusInternalServerError).JSON(response)
@@ -120,12 +127,21 @@ func DeleteArticle(c fiber.Ctx, db *gorm.DB) error {
 		return c.Status(fiber.StatusBadRequest).JSON(response)
 	}
 
-	var article model.Article
-	db.Preload("Tags").First(&article, id)
-
-	db.Model(&article).Association("Tags").Clear()
-
-	db.Delete(&article)
+	err = db.Transaction(func(tx *gorm.DB) error {
+		article, err := model.FindArticleByID(tx, id)
+		if err != nil {
+			return err
+		}
+		if err := model.ClearArticleTags(tx, article); err != nil {
+			return err
+		}
+		return model.DeleteArticle(tx, article)
+	})
+	if err != nil {
+		logrus.Error(err)
+		response := ResponseFactory[any](c, fiber.StatusInternalServerError, err.Error(), nil)
+		return c.Status(fiber.StatusInternalServerError).JSON(response)
+	}
 
 	logrus.Info("刪除Article成功" + id)
 	response := ResponseFactory[any](c, fiber.StatusOK, "刪除Article成功: "+id, nil)
@@ -143,10 +159,7 @@ func QueryArticleForTag(c fiber.Ctx, db *gorm.DB) error {
 		response := ResponseFactory[any](c, fiber.StatusBadRequest, err.Error(), nil)
 		return c.Status(fiber.StatusBadRequest).JSON(response)
 	}
-	err = db.Joins("JOIN article_tags ON article_tags.article_id = articles.id").
-		Joins("JOIN tags ON tags.name = article_tags.tag_name").
-		Where("tags.name = ?", name).
-		Find(&responseData).Error
+	responseData, err = model.FindArticlesByTag(db, name)
 	if err != nil {
 		logrus.Error(err)
 		response := ResponseFactory[any](c, fiber.StatusInternalServerError, err.Error(), nil)

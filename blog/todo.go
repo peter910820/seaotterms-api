@@ -28,8 +28,7 @@ func QueryTodoByOwner(c fiber.Ctx, db *gorm.DB) error {
 		return c.Status(fiber.StatusBadRequest).JSON(response)
 	}
 
-	var responseData []model.Todo
-	err = db.Where("owner = ?", owner).Order("created_at DESC").Find(&responseData).Error
+	responseData, err := model.FindTodosByOwner(db, owner)
 	if err != nil {
 		// if record not exist
 		if err == gorm.ErrRecordNotFound {
@@ -75,7 +74,7 @@ func CreateTodo(c fiber.Ctx, db *gorm.DB) error {
 		UpdateName: clientData.UpdateName,
 	}
 
-	err := db.Create(&data).Error
+	err := model.CreateTodo(db, &data)
 	if err != nil {
 		logrus.Error(err)
 		response := ResponseFactory[any](c, fiber.StatusInternalServerError, err.Error(), nil)
@@ -109,9 +108,7 @@ func UpdateTodoStatus(c fiber.Ctx, db *gorm.DB) error {
 		return c.Status(fiber.StatusBadRequest).JSON(response)
 	}
 	clientData.UpdatedAt = time.Now()
-	err := db.Model(&model.Todo{}).Where("id = ?", c.Params("id")).
-		Select("status", "updated_at", "update_name").
-		Updates(clientData).Error
+	err := model.UpdateTodoStatus(db, c.Params("id"), &model.Todo{Status: clientData.Status, UpdatedAt: clientData.UpdatedAt, UpdateName: clientData.UpdateName})
 	if err != nil {
 		logrus.Error(err)
 		// if record not exist
@@ -142,7 +139,7 @@ func UpdateTodoStatus(c fiber.Ctx, db *gorm.DB) error {
 }
 
 func DeleteTodo(c fiber.Ctx, db *gorm.DB) error {
-	err := db.Where("id = ?", c.Params("id")).Delete(&model.Todo{}).Error
+	err := model.DeleteTodo(db, c.Params("id"))
 	if err != nil {
 		logrus.Error(err)
 		// if record not exist
@@ -179,8 +176,7 @@ func getTodo(c fiber.Ctx, db *gorm.DB) (*[]model.Todo, error) {
 	if !ok {
 		logrus.Fatal("使用者登入版號表異常")
 	}
-	var responseData []model.Todo
-	err := db.Where("owner = ?", userInfo.Username).Order("created_at DESC").Find(&responseData).Error
+	responseData, err := model.FindTodosByOwner(db, userInfo.Username)
 	if err != nil {
 		return nil, err
 	}

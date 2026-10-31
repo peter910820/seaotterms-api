@@ -26,8 +26,7 @@ func QueryTodoTopic(c fiber.Ctx, db *gorm.DB) error {
 		return c.Status(fiber.StatusBadRequest).JSON(response)
 	}
 
-	data := []model.TodoTopic{}
-	err = db.Where("topic_owner = ?", owner).Order("topic_name DESC").Find(&data).Error
+	data, err := model.FindTodoTopicsByOwner(db, owner)
 	if err != nil {
 		logrus.Error(err)
 		// if record not exist
@@ -59,7 +58,7 @@ func CreateTodoTopic(c fiber.Ctx, db *gorm.DB) error {
 		UpdateName: clientData.UpdateName,
 	}
 
-	err := db.Create(&data).Error
+	err := model.CreateTodoTopic(db, &data)
 	if err != nil {
 		logrus.Error(err)
 		response := ResponseFactory[any](c, fiber.StatusInternalServerError, err.Error(), nil)

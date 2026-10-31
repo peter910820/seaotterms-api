@@ -46,21 +46,12 @@ type UserQueryResponse struct {
 	UpdateName string    `json:"updateName"`
 }
 
-type UserDataForUpdate struct {
-	UpdatedAt  time.Time
-	UpdateName string
-	Management bool
-	Avatar     string
-}
-
-type apiAccount struct {
-	Username string
-	Email    string
-}
-
 func QueryUser(c fiber.Ctx, db *gorm.DB) error {
-	var data []UserQueryResponse
-	err := db.Table("users").Order("COALESCE(updated_at, created_at) DESC").Find(&data).Error
+	users, err := model.FindAllUsers(db)
+	data := make([]UserQueryResponse, 0, len(users))
+	for _, user := range users {
+		data = append(data, UserQueryResponse{ID: user.ID, Username: user.Username, Exp: user.Exp, Management: user.Management, UpdatedAt: user.UpdatedAt, UpdateName: user.UpdateName})
+	}
 	if err != nil {
 		logrus.Error(err)
 		response := ResponseFactory[any](c, fiber.StatusInternalServerError, err.Error(), nil)
@@ -73,7 +64,6 @@ func QueryUser(c fiber.Ctx, db *gorm.DB) error {
 
 func CreateUser(c fiber.Ctx, db *gorm.DB) error {
 	var data RegisterRequest
-	var find []apiAccount
 
 	if err := c.Bind().Body(&data); err != nil {
 		logrus.Error(err)
@@ -81,7 +71,7 @@ func CreateUser(c fiber.Ctx, db *gorm.DB) error {
 		return c.Status(fiber.StatusBadRequest).JSON(response)
 	}
 
-	err := db.Model(&model.User{}).Find(&find).Error
+	find, err := model.FindAllUsers(db)
 	if err != nil {
 		logrus.Error(err)
 		response := ResponseFactory[any](c, fiber.StatusOK, fmt.Sprintf("Todo %s 刪除成功", c.Params("id")), nil)
@@ -113,7 +103,7 @@ func CreateUser(c fiber.Ctx, db *gorm.DB) error {
 		Email:      data.Email,
 		CreateName: data.Username,
 	}
-	err = db.Create(&dataCreate).Error
+	err = model.CreateUser(db, &dataCreate)
 	if err != nil {
 		logrus.Error(err)
 		response := ResponseFactory[any](c, fiber.StatusInternalServerError, err.Error(), nil)
@@ -167,21 +157,17 @@ func UpdateUser(c fiber.Ctx, db *gorm.DB, store *session.Store) error {
 
 	timeNow := time.Now()
 	if uint(u) == userInfo.ID {
-		err = db.Model(&model.User{}).Where("id = ?", u).
-			Select("updated_at", "update_name", "avatar").
-			Updates(UserDataForUpdate{
-				UpdatedAt:  timeNow,
-				UpdateName: clientData.Username,
-				Avatar:     clientData.Avatar,
-			}).Error
+		err = model.UpdateUserAvatar(db, u, &model.User{
+			UpdatedAt:  timeNow,
+			UpdateName: clientData.Username,
+			Avatar:     clientData.Avatar,
+		})
 	} else {
-		err = db.Model(&model.User{}).Where("id = ?", u).
-			Select("updated_at", "update_name", "management").
-			Updates(UserDataForUpdate{
-				UpdatedAt:  timeNow,
-				UpdateName: clientData.Username,
-				Management: clientData.Management,
-			}).Error
+		err = model.UpdateUserManagement(db, u, &model.User{
+			UpdatedAt:  timeNow,
+			UpdateName: clientData.Username,
+			Management: clientData.Management,
+		})
 	}
 	if err != nil {
 		// if record not exist

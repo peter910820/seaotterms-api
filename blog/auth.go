@@ -28,7 +28,6 @@ func Auth(c fiber.Ctx, store *session.Store) error {
 // login api
 func Login(c fiber.Ctx, store *session.Store, db *gorm.DB) error {
 	var data LoginRequest
-	var databaseData []LoginRequest
 
 	if err := c.Bind().Body(&data); err != nil {
 		logrus.Error(err)
@@ -36,7 +35,7 @@ func Login(c fiber.Ctx, store *session.Store, db *gorm.DB) error {
 		return c.Status(fiber.StatusBadRequest).JSON(response)
 	}
 
-	err := db.Model(&model.User{}).Find(&databaseData).Error
+	databaseData, err := model.FindAllUsers(db)
 	if err != nil {
 		response := ResponseFactory[any](c, fiber.StatusInternalServerError, err.Error(), nil)
 		return c.Status(fiber.StatusInternalServerError).JSON(response)
@@ -59,9 +58,7 @@ func Login(c fiber.Ctx, store *session.Store, db *gorm.DB) error {
 				}
 			}
 
-			var userData model.User
-
-			err = db.Where("username = ?", data.Username).First(&userData).Error
+			userData, err := model.FindUserByUsername(db, data.Username)
 			if err != nil {
 				logrus.Error(err)
 				response := ResponseFactory[any](c, fiber.StatusInternalServerError, err.Error(), nil)

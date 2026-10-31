@@ -16,9 +16,7 @@ type TagCreateRequest struct {
 }
 
 func QueryTag(c fiber.Ctx, db *gorm.DB) error {
-	var responseData []model.Tag
-
-	err := db.Order("created_at desc").Find(&responseData).Error
+	responseData, err := model.FindAllTags(db)
 	if err != nil {
 		logrus.Error(err)
 		// if record not exist
@@ -52,7 +50,7 @@ func CreateTag(c fiber.Ctx, db *gorm.DB) error {
 	if strings.TrimSpace(clientData.IconName) != "" {
 		dataCreate.IconName = clientData.IconName
 	}
-	err := db.Create(&dataCreate).Error
+	err := model.CreateTag(db, &dataCreate)
 	if err != nil {
 		logrus.Println("錯誤:", err)
 		response := ResponseFactory[any](c, fiber.StatusInternalServerError, err.Error(), nil)
