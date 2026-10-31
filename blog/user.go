@@ -148,6 +148,12 @@ func UpdateUser(c fiber.Ctx, db *gorm.DB, store *session.Store) error {
 		response := ResponseFactory[any](c, fiber.StatusInternalServerError, "Middleware異常", nil)
 		return c.Status(fiber.StatusInternalServerError).JSON(response)
 	}
+	// 更新其他使用者的權限必須由管理員操作。
+	if uint(u) != userInfo.ID && !userInfo.Management {
+		response := ResponseFactory[any](c, fiber.StatusForbidden, "使用者沒有權限", nil)
+		return c.Status(fiber.StatusForbidden).JSON(response)
+	}
+
 	// 如果要更新root，但使用者並不是root，就阻擋更新
 	if clientData.Username == "root" && userInfo.Username != "root" {
 		logrus.Error("不允許更新root使用者")
